@@ -1,32 +1,33 @@
 ﻿using System;
-using System.Threading;
-using Avalonia.Threading;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
+
+using KomorebiLyrs.Services;
 
 namespace KomorebiLyrs.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    [ObservableProperty] private string title = "";
+    [ObservableProperty] private string artist = "";
+    [ObservableProperty] private string fullInfo = "";
     
-
-    [ObservableProperty] private string mainLyrics = "Waiting for music";
+    private IMediaService _mediaService;
     
-    private readonly DispatcherTimer _timer;
-    private int _count;
-    public MainWindowViewModel()
+    public MainWindowViewModel(IMediaService mediaService)
     {
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
-        _timer.Tick += Timer_tick;
-        
-        _timer.Start();
+        _mediaService = mediaService;
+        _mediaService.MediaChanged += OnMediaChanged;
+        _mediaService.Start();
+    
     }
 
-    private void Timer_tick(object? sender, EventArgs e)
+    private void OnMediaChanged(object? sender, MediaInfoEventArgs e)
     {
-        _count++;
-
-        MainLyrics = _count % 2 == 0 ? "誰かの願いが叶うころ" : "あの子が泣いてるよ";
+        Title = e.Title;
+        Artist = e.Artist;
+        FullInfo = Title == String.Empty || Artist == String.Empty ? "" : $"{Title} - {Artist}";
     }
 
-    
+ 
 }

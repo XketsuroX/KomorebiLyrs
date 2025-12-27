@@ -11,7 +11,7 @@
         Width="700"
         Height="100"
         
-        TransparencyLevelHint="AcrylicBlur , Blur"
+        TransparencyLevelHint="Transparent"
         Background="Transparent"
         ExtendClientAreaChromeHints="NoChrome"
         
@@ -31,19 +31,20 @@
     </Design.DataContext>
     
     <Border CornerRadius="20"
-            Background="#66000000"
+            Background="#CC000000"
             Padding="20"
             Margin="10">
         
         <StackPanel VerticalAlignment="Center"
                     HorizontalAlignment="Center">
             
-            <TextBlock Text="{Binding MainLyrics}" 
+            <TextBlock Text="{Binding FullInfo}" 
                        FontSize="28"
                        FontWeight="Bold"
                        Foreground="White"
                        HorizontalAlignment="Center"
                        RenderOptions.TextRenderingMode="Antialias"/>
+            
         </StackPanel>
     </Border>
 
