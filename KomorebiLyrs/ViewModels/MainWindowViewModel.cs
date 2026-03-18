@@ -16,13 +16,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string artist = "";
     [ObservableProperty] private string fullInfo = "";
 
-    private IMediaService _mediaService;
+    private IMediaServiceManager _mediaService;
     private readonly IWindowTraitService _windowTraitService;
 
     [ObservableProperty] private bool _isLocked;
     [ObservableProperty] private double _windowOpacity = 1.0;
 
-    public MainWindowViewModel(IMediaService mediaService, IWindowTraitService windowTraitService)
+    public MainWindowViewModel(IMediaServiceManager mediaService, IWindowTraitService windowTraitService)
     {
         _mediaService = mediaService;
         _windowTraitService = windowTraitService;

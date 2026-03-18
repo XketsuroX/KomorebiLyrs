@@ -5,12 +5,13 @@ using KomorebiLyrs.Models;
 
 namespace KomorebiLyrs.Services;
 
-public class MediaServiceManager: IMediaService
+public class MediaServiceManager: IMediaServiceManager
 {
     private readonly SettingService _settingService;
     private readonly IEnumerable<IMediaService> _services;
     private IMediaService? _currentStrategy;
 
+    public AppSettings.MediaProviderType CurrentProvider => _currentStrategy?.ProviderType ?? AppSettings.MediaProviderType.Dummy;
     public event EventHandler<MediaInfoEventArgs>? MediaChanged;
 
     // Inject IServiceProvider so we can resolve specific media services dynamically
