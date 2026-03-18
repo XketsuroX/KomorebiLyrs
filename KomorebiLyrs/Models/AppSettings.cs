@@ -1,6 +1,6 @@
 ﻿namespace KomorebiLyrs.Models;
 
-public class AppSettings
+public record AppSettings
 {
     public enum MediaProviderType
     {
