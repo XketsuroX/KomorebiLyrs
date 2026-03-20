@@ -21,43 +21,11 @@ public class SettingService
             var appFolder = Path.Combine(appDataPath, "KomorebiLyrs");
             _settingsFilePath = Path.Combine(appFolder, "settings.json");
             
-            // Ensure the directory exists (create it if this is the first run)
-            try
-            {
-                if (!Directory.Exists(appFolder))
-                {
-                    Directory.CreateDirectory(appFolder);
-                }
-                _canSaveToDisk = true;
-            }
-            catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
-            {
-                Console.WriteLine($"[Error] Failed to create settings directory: {ex.Message}");
-                _canSaveToDisk = false;
-            }
+            // Initialize storage
+            _canSaveToDisk = EnsureDirectoryExists(appFolder);
 
             // Load settings (use defaults if first run or load failed)
-            var loadedSettings = LoadSettings();
-            if (loadedSettings != null)
-            {
-                _settings = loadedSettings;
-            }
-            else
-            {
-                _settings = new AppSettings();
-                
-                if (_canSaveToDisk && !File.Exists(_settingsFilePath))
-                {
-                    // If it's the first run, save a default settings file
-                    SaveSettings(_settings);
-                }
-                else
-                {
-                    Console.WriteLine(File.Exists(_settingsFilePath)
-                        ? "[Warning] Settings file exists but failed to load. Using defaults without overwriting."
-                        : "[Warning] Cannot save to disk. Using memory-only defaults.");
-                }
-            }
+            _settings = LoadSettings() ?? CreateDefaultSettings();
         }
     
         public AppSettings GetSettings()
@@ -83,5 +51,39 @@ public class SettingService
         private void SaveSettings(AppSettings settings)
         {
             // Implement saving logic (e.g., to JSON file)
+        }
+        
+        private bool EnsureDirectoryExists(string folderPath)
+        {
+            try
+            {
+                Directory.CreateDirectory(folderPath);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Error] Failed to create settings directory: {ex.GetType().Name}: {ex.Message}");
+                return false;
+            }
+        }
+        
+        private AppSettings CreateDefaultSettings()
+        {
+            var defaults = new AppSettings();
+        
+            if (File.Exists(_settingsFilePath))
+            {
+                Console.WriteLine("[Warning] Settings file exists but failed to load. Using defaults without overwriting.");
+            }
+            else if (!_canSaveToDisk)
+            {
+                Console.WriteLine("[Warning] Cannot save to disk. Using memory-only defaults.");
+            }
+            else
+            {
+                SaveSettings(defaults);
+            }
+
+            return defaults;
         }
 }
