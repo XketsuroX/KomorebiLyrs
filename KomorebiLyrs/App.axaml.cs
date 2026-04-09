@@ -38,6 +38,8 @@ public partial class App : Application
             // Register the fallback dummy service
             services.AddKeyedSingleton<IMediaService, DummyMediaService>(AppSettings.MediaProviderType.Dummy);
             
+            services.AddKeyedSingleton<IMediaService, TunaMediaService>(AppSettings.MediaProviderType.Tuna);
+            
 #if WINDOWS
             services.AddKeyedSingleton<IMediaService, WindowsMediaService>(AppSettings.MediaProviderType.Windows);
             services.AddSingleton<IWindowTraitService, WindowTraitService>();
