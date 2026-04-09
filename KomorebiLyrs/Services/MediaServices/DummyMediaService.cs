@@ -10,4 +10,6 @@ public class DummyMediaService : IMediaService
     public void Start()
     {
     }
+    
+    public void Stop(){}
 }

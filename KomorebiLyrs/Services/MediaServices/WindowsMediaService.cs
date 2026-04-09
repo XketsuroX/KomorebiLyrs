@@ -11,6 +11,7 @@ public class WindowsMediaService : IMediaService
     
     private GlobalSystemMediaTransportControlsSessionManager? _manager;
 
+    private readonly object _locker = new ();
     public event EventHandler<MediaInfoEventArgs>? MediaChanged;
 
     public async void Start()
@@ -18,15 +19,28 @@ public class WindowsMediaService : IMediaService
         try 
         {
             _manager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
-            if (_manager != null)
-            {
-                _manager.CurrentSessionChanged += Manager_CurrentSessionChanged;
-                UpdateMediaInfo();
+            lock (_locker){
+                if (_manager != null) {
+                        _manager.CurrentSessionChanged += Manager_CurrentSessionChanged;
+                        UpdateMediaInfo();
+                }
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Media API Error: {ex.Message}");
+        }
+    }
+
+    public void Stop()
+    {
+        lock (_locker)
+        {
+            if (_manager != null)
+            {
+                _manager.CurrentSessionChanged -= Manager_CurrentSessionChanged;
+                _manager = null;
+            }
         }
     }
 
@@ -37,16 +51,24 @@ public class WindowsMediaService : IMediaService
 
     private async void UpdateMediaInfo()
     {
-        var session = _manager?.GetCurrentSession();
-        if (session != null)
+        GlobalSystemMediaTransportControlsSessionManager? manager;
+        lock (_locker)
         {
-            var properties = await session.TryGetMediaPropertiesAsync();
-            // invoke event to ViewModel
-            MediaChanged?.Invoke(this, new MediaInfoEventArgs 
-            { 
-                Title = properties.Title, 
-                Artist = properties.Artist 
-            });
+            manager = _manager;
+        }
+        
+        if(manager is not null){
+            var session = manager?.GetCurrentSession();
+            if (session != null)
+            {
+                var properties = await session.TryGetMediaPropertiesAsync();
+                // invoke event to ViewModel
+                MediaChanged?.Invoke(this, new MediaInfoEventArgs
+                {
+                    Title = properties.Title,
+                    Artist = properties.Artist
+                });
+            }
         }
     }
 }

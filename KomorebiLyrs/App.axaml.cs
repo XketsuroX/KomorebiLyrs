@@ -6,6 +6,8 @@ using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using KomorebiLyrs.Models;
+using Microsoft.Extensions.DependencyInjection;
 using KomorebiLyrs.Services;
 using KomorebiLyrs.ViewModels;
 using KomorebiLyrs.Views;
@@ -29,25 +31,33 @@ public partial class App : Application
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
            
-            IWindowTraitService windowTraitService;
-            var settingService = new SettingService();
+            var services = new ServiceCollection();
+            
+            services.AddSingleton<SettingService>();
 
-            var mediaServices = new List<IMediaService>();
+            // Register the fallback dummy service
+            services.AddKeyedSingleton<IMediaService, DummyMediaService>(AppSettings.MediaProviderType.Dummy);
+            
+            services.AddKeyedSingleton<IMediaService, TunaMediaService>(AppSettings.MediaProviderType.Tuna);
             
 #if WINDOWS
-            mediaServices.Add(new WindowsMediaService());
-            mediaServices.Add(new DummyMediaService());
-            windowTraitService = new WindowTraitService();
+            services.AddKeyedSingleton<IMediaService, WindowsMediaService>(AppSettings.MediaProviderType.Windows);
+            services.AddSingleton<IWindowTraitService, WindowTraitService>();
 #else
-                    mediaServices.Add(new DummyMediaService());
-                    windowTraitService = new DummyWindowTraitService();
+            services.AddSingleton<IWindowTraitService, DummyWindowTraitService>();
 #endif  
 
-            var mediaServiceManager = new MediaServiceManager(settingService, mediaServices);
+            // Register the manager itself (which will be injected into ViewModels)
+            services.AddSingleton<IMediaServiceManager, MediaServiceManager>();
+            services.AddTransient<MainWindowViewModel>();
+
+            var serviceProvider = services.BuildServiceProvider();
             
+            var windowTraitService = serviceProvider.GetRequiredService<IWindowTraitService>();
+
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainWindowViewModel(mediaServiceManager, windowTraitService)
+                DataContext = serviceProvider.GetRequiredService<MainWindowViewModel>()
             };
 
             desktop.Startup += (sender, args) =>
