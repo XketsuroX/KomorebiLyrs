@@ -34,10 +34,13 @@ public class WindowsMediaService : IMediaService
 
     public void Stop()
     {
-        if (_manager != null)
+        lock (_locker)
         {
-            _manager.CurrentSessionChanged -= Manager_CurrentSessionChanged;
-            _manager = null;
+            if (_manager != null)
+            {
+                _manager.CurrentSessionChanged -= Manager_CurrentSessionChanged;
+                _manager = null;
+            }
         }
     }
 
@@ -48,8 +51,14 @@ public class WindowsMediaService : IMediaService
 
     private async void UpdateMediaInfo()
     {
-        if(_manager != null){
-            var session = _manager?.GetCurrentSession();
+        GlobalSystemMediaTransportControlsSessionManager? manager;
+        lock (_locker)
+        {
+            manager = _manager;
+        }
+        
+        if(manager is not null){
+            var session = manager?.GetCurrentSession();
             if (session != null)
             {
                 var properties = await session.TryGetMediaPropertiesAsync();

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 using KomorebiLyrs.Models;
@@ -84,9 +83,9 @@ public class TunaMediaService: IMediaService, IDisposable
                 if(tunaData?.Data != null){
                     var args = new MediaInfoEventArgs
                     {
-                        Title = tunaData.Data.Title,
+                        Title = tunaData.Data.Title ?? string.Empty,
                         Artist = tunaData.Data.Artists != null ? string.Join(", ", tunaData.Data.Artists) : "Unknown Artist",
-                        Album = "",
+                        Album = null,
                         CoverUrl = tunaData.Data.CoverUrl,
                         ProgressMs = tunaData.Data.Progress,
                         DurationMs = tunaData.Data.Duration,
