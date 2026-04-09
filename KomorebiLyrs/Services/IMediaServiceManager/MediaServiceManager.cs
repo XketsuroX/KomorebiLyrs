@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using KomorebiLyrs.Models;
 
 namespace KomorebiLyrs.Services;
@@ -8,17 +9,17 @@ namespace KomorebiLyrs.Services;
 public class MediaServiceManager: IMediaServiceManager
 {
     private readonly SettingService _settingService;
-    private readonly IEnumerable<IMediaService> _services;
+    private readonly IServiceProvider _serviceProvider;
     private IMediaService? _currentStrategy;
 
     public AppSettings.MediaProviderType CurrentProvider => _currentStrategy?.ProviderType ?? AppSettings.MediaProviderType.Dummy;
     public event EventHandler<MediaInfoEventArgs>? MediaChanged;
 
-    // Inject available media services so we can select the appropriate one based on settings
-    public MediaServiceManager(SettingService settingService,IEnumerable<IMediaService> services)
+    // Inject IServiceProvider to resolve keyed services
+    public MediaServiceManager(SettingService settingService, IServiceProvider serviceProvider)
     {
         _settingService = settingService;
-        _services = services;
+        _serviceProvider = serviceProvider;
         _settingService.SettingsChanged += OnSettingsChanged;
         
         // Initialize the first strategy based on current settings
@@ -33,8 +34,8 @@ public class MediaServiceManager: IMediaServiceManager
     private void UpdateStrategy(AppSettings settings)
     {
         // Resolve the strategy that matches the current settings
-        var newStrategy = _services.FirstOrDefault(s => s.ProviderType == settings.MediaProvider)
-                          ?? _services.FirstOrDefault(s => s.ProviderType == AppSettings.MediaProviderType.Dummy);
+        var newStrategy = _serviceProvider.GetKeyedService<IMediaService>(settings.MediaProvider) 
+                          ?? _serviceProvider.GetKeyedService<IMediaService>(AppSettings.MediaProviderType.Dummy);
 
         // If the strategy instance hasn't changed, avoid re-subscribing and re-starting
         if (ReferenceEquals(newStrategy, _currentStrategy))
