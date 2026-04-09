@@ -47,8 +47,7 @@ public class MediaServiceManager: IMediaServiceManager
         if (_currentStrategy != null)
         {
             _currentStrategy.MediaChanged -= OnStrategyMediaChanged;
-            // TODO: implement _currentStrategy.stop() for all IMediaServices 
-            // Optionally stop the old strategy if IMediaService has a Stop() method
+            _currentStrategy.Stop();
         }
 
         _currentStrategy = newStrategy;

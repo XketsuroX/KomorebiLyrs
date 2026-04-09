@@ -6,7 +6,7 @@ using KomorebiLyrs.Models;
 
 namespace KomorebiLyrs.Services;
 
-public class TunaMediaService: IMediaService
+public class TunaMediaService: IMediaService, IDisposable
 {
     public AppSettings.MediaProviderType ProviderType => AppSettings.MediaProviderType.Tuna;
     public event EventHandler<MediaInfoEventArgs>? MediaChanged;
@@ -39,6 +39,12 @@ public class TunaMediaService: IMediaService
         if(_isRunning && _listener != null){
             _isRunning = false;
             _listener.Stop();
+            try
+            {
+                _listenTask?.Wait(TimeSpan.FromSeconds(1));
+            }
+            catch
+            {}
             _listener.Close();
             _listener = null;
             Console.WriteLine("TunaMediaService stopped.");
